@@ -18,12 +18,18 @@
 
 @interface LYFAlbumViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
 
+
 /// 显示相册按钮
 @property (nonatomic, strong) UIButton *showAlbumButton;
 /// 取消按钮
 @property (nonatomic, strong) UIButton *cancelButton;
 /// 确定按钮
 @property (nonatomic, strong) UIButton *confirmButton;
+
+/// 预览图
+@property (nonatomic, strong) UIImageView *currentImagePreview;
+/// 预览图背景视图
+@property (nonatomic,strong)UIView *previewBgView;
 
 /// 相册列表
 @property (nonatomic, strong) UICollectionView *albumCollectionView;
@@ -174,6 +180,40 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
     return cell;
 }
 
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    PHAsset *asset = self.albumModel.assets[indexPath.row];
+    [self fetchImageWithAsset:asset imageBlock:^(NSData *imageData) {
+        self.currentImagePreview.image = [UIImage imageWithData:imageData];
+    }];
+    
+}
+
+/**
+ 通过资源获取图片的数据
+ 
+ @param mAsset 资源文件
+ @param imageBlock 图片数据回传
+ */
+- (void)fetchImageWithAsset:(PHAsset*)mAsset imageBlock:(void(^)(NSData*))imageBlock {
+    
+    [[PHImageManager defaultManager] requestImageDataForAsset:mAsset options:nil resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+        
+        if (orientation != UIImageOrientationUp) {
+            UIImage* image = [UIImage imageWithData:imageData];
+            // 尽然弯了,那就板正一下
+            image = [self fixOrientation:image];
+            // 新的 数据信息 （不准确的）
+            imageData = UIImageJPEGRepresentation(image, 0.5);
+        }
+        
+        // 直接得到最终的 NSData 数据
+        if (imageBlock) {
+            imageBlock(imageData);
+        }
+        
+    }];
+}
+
 -(CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
     return CGSizeMake((kScreenWidth - 20.f) / 3.f, (kScreenWidth - 20.f) / 3.f);
 }
@@ -216,7 +256,7 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
                         
                         if (photoList.count == [LYFPhotoManger standardPhotoManger].choiceCount) {
                             button.enabled = YES;
-
+                            
                             [LYFPhotoManger standardPhotoManger].photoModelList = photoList;
                             if (weakSelf.confirmAction) {
                                 weakSelf.confirmAction();
@@ -234,6 +274,24 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
 }
 
 #pragma mark - Get方法
+
+- (UIImageView *)currentImagePreview {
+    if(!_currentImagePreview){
+        _currentImagePreview = [[UIImageView alloc] initWithFrame:self.previewBgView.frame];
+        [self.previewBgView addSubview:_currentImagePreview];
+    }
+    return _currentImagePreview;
+}
+
+-(UIView *)previewBgView {
+    if(!_previewBgView){
+        _previewBgView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kScreenWidth, kScreenWidth)];
+        _previewBgView.backgroundColor = [UIColor lightGrayColor];
+        [self.view addSubview:_previewBgView];
+    }
+    return _previewBgView;
+}
+
 -(UICollectionView *)albumCollectionView {
     if (!_albumCollectionView) {
         UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
@@ -241,7 +299,7 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
         layout.minimumLineSpacing = 5.f;
         layout.minimumInteritemSpacing = 5.f;
         
-        _albumCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, kScreenWidth, kScreenHeight) collectionViewLayout:layout];
+        _albumCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.previewBgView.frame), kScreenWidth, kScreenHeight- CGRectGetHeight(self.previewBgView.frame)) collectionViewLayout:layout];
         _albumCollectionView.delegate = self;
         _albumCollectionView.dataSource = self;
         _albumCollectionView.backgroundColor = [UIColor whiteColor];
@@ -297,6 +355,86 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
     }
     
     return _confirmButton;
+}
+
+
+
+/** 解决旋转90度问题 */
+- (UIImage *)fixOrientation:(UIImage *)aImage
+{
+    // No-op if the orientation is already correct
+    if (aImage.imageOrientation == UIImageOrientationUp)
+        return aImage;
+    
+    // We need to calculate the proper transformation to make the image upright.
+    // We do it in 2 steps: Rotate if Left/Right/Down, and then flip if Mirrored.
+    CGAffineTransform transform = CGAffineTransformIdentity;
+    
+    switch (aImage.imageOrientation) {
+        case UIImageOrientationDown:
+        case UIImageOrientationDownMirrored:
+            transform = CGAffineTransformTranslate(transform, aImage.size.width, aImage.size.height);
+            transform = CGAffineTransformRotate(transform, M_PI);
+            break;
+            
+        case UIImageOrientationLeft:
+        case UIImageOrientationLeftMirrored:
+            transform = CGAffineTransformTranslate(transform, aImage.size.width, 0);
+            transform = CGAffineTransformRotate(transform, M_PI_2);
+            break;
+            
+        case UIImageOrientationRight:
+        case UIImageOrientationRightMirrored:
+            transform = CGAffineTransformTranslate(transform, 0, aImage.size.height);
+            transform = CGAffineTransformRotate(transform, -M_PI_2);
+            break;
+        default:
+            break;
+    }
+    
+    switch (aImage.imageOrientation) {
+        case UIImageOrientationUpMirrored:
+        case UIImageOrientationDownMirrored:
+            transform = CGAffineTransformTranslate(transform, aImage.size.width, 0);
+            transform = CGAffineTransformScale(transform, -1, 1);
+            break;
+            
+        case UIImageOrientationLeftMirrored:
+        case UIImageOrientationRightMirrored:
+            transform = CGAffineTransformTranslate(transform, aImage.size.height, 0);
+            transform = CGAffineTransformScale(transform, -1, 1);
+            break;
+        default:
+            break;
+    }
+    
+    // Now we draw the underlying CGImage into a new context, applying the transform
+    // calculated above.
+    CGContextRef ctx = CGBitmapContextCreate(NULL, aImage.size.width, aImage.size.height,
+                                             CGImageGetBitsPerComponent(aImage.CGImage), 0,
+                                             CGImageGetColorSpace(aImage.CGImage),
+                                             CGImageGetBitmapInfo(aImage.CGImage));
+    CGContextConcatCTM(ctx, transform);
+    switch (aImage.imageOrientation) {
+        case UIImageOrientationLeft:
+        case UIImageOrientationLeftMirrored:
+        case UIImageOrientationRight:
+        case UIImageOrientationRightMirrored:
+            // Grr...
+            CGContextDrawImage(ctx, CGRectMake(0,0,aImage.size.height,aImage.size.width), aImage.CGImage);
+            break;
+            
+        default:
+            CGContextDrawImage(ctx, CGRectMake(0,0,aImage.size.width,aImage.size.height), aImage.CGImage);
+            break;
+    }
+    
+    // And now we just create a new UIImage from the drawing context
+    CGImageRef cgimg = CGBitmapContextCreateImage(ctx);
+    UIImage *img = [UIImage imageWithCGImage:cgimg];
+    CGContextRelease(ctx);
+    CGImageRelease(cgimg);
+    return img;
 }
 
 @end
