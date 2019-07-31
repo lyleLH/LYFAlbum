@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import <Photos/Photos.h>
 
-typedef void(^LYFAlbumCollectionViewCellAction)(PHAsset *asset);
+typedef void(^LYFAlbumCollectionViewCellAction)(PHAsset *asset ,NSInteger nowSelectedRow);
 
 @interface LYFAlbumCollectionViewCell : UICollectionViewCell
 

@@ -95,7 +95,7 @@
 #pragma mark - 点击事件
 -(void)selectPhoto:(UIButton *)button {
     if (self.selectPhotoAction) {
-        self.selectPhotoAction(self.asset);
+        self.selectPhotoAction(self.asset,self.row);
     }
 }
 

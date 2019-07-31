@@ -15,12 +15,16 @@
 #import "UIView+Additions.h"
 #import "UIImage+Additions.h"
 #import "LPImageEditViewController.h"
-
-@interface LYFAlbumViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
+#import "LPImageCutModel.h"
+@interface LYFAlbumViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout,UIGestureRecognizerDelegate>
 {
     CGSize orginSize;
+  
 }
 
+/// 当前正在编辑的那一行
+@property (nonatomic, assign) NSInteger nowEditRow;
+@property (nonatomic, assign) CGRect latestFrame; // 最终frame
 /// 显示相册按钮
 @property (nonatomic, strong) UIButton *showAlbumButton;
 /// 取消按钮
@@ -39,6 +43,11 @@
 @property (nonatomic, strong) NSMutableArray<LYFAlbumModel *> *assetCollectionList;
 /// 当前相册
 @property (nonatomic, strong) LYFAlbumModel *albumModel;
+
+/// 最终的图片数组
+@property (nonatomic, strong) NSMutableArray<UIImage *> *selectedImages;
+/// 选择的， 带有缩放信息的，图片数组，
+@property (nonatomic, strong) NSMutableArray<LPImageCutModel *> *editdImages;
 
 @end
 
@@ -160,12 +169,15 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
    
     __weak typeof(self) weakSelf = self;
     __weak typeof(cell) weakCell = cell;
-    cell.selectPhotoAction = ^(PHAsset *asset) {
-        BOOL isReloadCollectionView = NO;
+    cell.selectPhotoAction = ^(PHAsset *asset, NSInteger nowSelectedRow) {
+        weakSelf.nowEditRow = nowSelectedRow;
         if([self.albumModel.selectedAssets containsObject:asset]){
             
+            [weakSelf.selectedImages removeObjectAtIndex:[weakSelf.albumModel.selectedAssets indexOfObject:asset]];
+            [weakSelf.editdImages removeObjectAtIndex:[weakSelf.albumModel.selectedAssets indexOfObject:asset]];
             NSMutableArray * oldAry = [self.albumModel.selectRows copy];
             [weakSelf.albumModel.selectRows removeObject:@(indexPath.row)];
+            
             [weakSelf.albumModel.selectedAssets removeObject:asset];
             
             [LYFPhotoManger standardPhotoManger].choiceCount--;
@@ -176,10 +188,11 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
                 [indexPathAry addObject:[NSIndexPath indexPathForRow:[number integerValue] inSection:0]];
             }
             [self.albumCollectionView reloadItemsAtIndexPaths:indexPathAry];
+            weakCell.isSelect = [weakSelf.albumModel.selectedAssets containsObject:asset];
             if([LYFPhotoManger standardPhotoManger].choiceCount == 9){//减少到10张以下，去除遮罩
                 [weakSelf.albumCollectionView reloadData];
             }
-            
+          
             
         }else {
             if ([LYFPhotoManger standardPhotoManger].maxCount == [LYFPhotoManger standardPhotoManger].choiceCount) {
@@ -193,14 +206,27 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
             [self.albumCollectionView reloadItemsAtIndexPaths:@[indexPath]];
             
             [LYFPhotoManger standardPhotoManger].choiceCount++;
+            weakCell.isSelect = [weakSelf.albumModel.selectedAssets containsObject:asset];
             if([LYFPhotoManger standardPhotoManger].choiceCount == 10){//选到第10张，去除遮罩
+                
                 [weakSelf.albumCollectionView reloadData];
             }
             [weakSelf fetchImageWithAsset:asset imageBlock:^(NSData *imageData) {
-                [weakSelf setCoverImage: [UIImage imageWithData:imageData]];
+                UIImage * selectedImage = [UIImage imageWithData:imageData];
+                [weakSelf.selectedImages addObject:selectedImage];
+                [weakSelf setCoverImage: selectedImage];
+                
+                LPImageCutModel * cutModel = [[LPImageCutModel alloc] init];
+                
+                cutModel.image = selectedImage;
+                cutModel.scrale =  1.0;
+                cutModel.originRect = self.currentImagePreview.frame;
+                cutModel.corpRect = cutModel.originRect;
+                [weakSelf.editdImages addObject:cutModel];
+                
             }];
         }
-        weakCell.isSelect = [weakSelf.albumModel.selectedAssets containsObject:asset];
+        
     };
     
     return cell;
@@ -265,93 +291,27 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
+
+#pragma mark - 确认选择去到照片的标签编辑
+
 -(void)confirmAction:(UIButton *)button {
-    if(self.albumModel.selectedAssets.count>0){
-        button.enabled = NO;
-        NSMutableArray<LYFPhotoModel *> *photoList = [NSMutableArray array];
-        for (NSInteger i =0 ; i<self.albumModel.selectedAssets.count; i ++) {
-            
-            LYFPhotoModel *photoModel = [[LYFPhotoModel alloc] init];
-            photoModel.asset = self.albumModel.selectedAssets[i];
-            __weak typeof(photoModel) weakPhotoModel = photoModel;
-            photoModel.getPictureAction = ^{
-                [photoList addObject:weakPhotoModel];
-                if (photoList.count == [LYFPhotoManger standardPhotoManger].choiceCount) {
-                    button.enabled = YES;
-                    [LYFPhotoManger standardPhotoManger].photoModelList = photoList;
-                }
-            };
-        }
-        
-        LPImageEditViewController * editVc = [[LPImageEditViewController alloc] init];
-        
-        editVc.images = photoList;
-        
-        [self.navigationController pushViewController:editVc animated:YES];
-    }
-    
-//    if ([LYFPhotoManger standardPhotoManger].choiceCount > 0) {
-//        button.enabled = NO;
-//        NSMutableArray<LYFPhotoModel *> *photoList = [NSMutableArray array];
-//
-//        __weak typeof(self) weakSelf = self;
-//        for (LYFAlbumModel *albumModel in self.assetCollectionList) {
-//            for (NSNumber *row in albumModel.selectRows) {
-//                if (row.integerValue < albumModel.assets.count) {
-//                    LYFPhotoModel *photoModel = [[LYFPhotoModel alloc] init];
-//
-//                    __weak typeof(photoModel) weakPhotoModel = photoModel;
-//                    photoModel.getPictureAction = ^{
-//                        [photoList addObject:weakPhotoModel];
-//
-//                        if (photoList.count == [LYFPhotoManger standardPhotoManger].choiceCount) {
-//                            button.enabled = YES;
-//
-//                            [LYFPhotoManger standardPhotoManger].photoModelList = photoList;
-//                            if (weakSelf.confirmAction) {
-//                                weakSelf.confirmAction();
-//                            }
-//
-////                            [weakSelf dismissViewControllerAnimated:YES completion:nil];
-//
-//                        }
-//                    };
-//
-//                    photoModel.asset = albumModel.assets[row.integerValue];
-//                }
-//            }
-//        }
-//    }
+    LPImageEditViewController * editVc = [[LPImageEditViewController alloc] init];
+    editVc.images = [self corpedImage];
+    [self.navigationController pushViewController:editVc animated:YES];
 }
 
-#pragma mark - Get方法
 
-- (UIImageView *)currentImagePreview {
-    if(!_currentImagePreview){
-        _currentImagePreview = [[UIImageView alloc] initWithFrame:self.previewBgView.frame];
-        
-        [_currentImagePreview setUserInteractionEnabled:YES];
-        [_currentImagePreview setMultipleTouchEnabled:YES];
-        
-        // 旋转手势
-        //    UIRotationGestureRecognizer *rotationGestureRecognizer = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotateView:)];
-        //    [view addGestureRecognizer:rotationGestureRecognizer];
-        
-        // 缩放手势
-        UIPinchGestureRecognizer *pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchView:)];
-        [_currentImagePreview addGestureRecognizer:pinchGestureRecognizer];
-        
-        // 移动手势
-        UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panView:)];
-        panGestureRecognizer.maximumNumberOfTouches = 1;
-        [_currentImagePreview addGestureRecognizer:panGestureRecognizer];
-        
-        
-        
-        [self.previewBgView addSubview:_currentImagePreview];
+- (NSMutableArray *)corpedImage {
+    NSMutableArray * images = [NSMutableArray new];
+    for (NSInteger i =0 ; i <self.editdImages.count; i ++) {
+        LPImageCutModel * cutModel = self.editdImages[i];
+        UIImage * newImage =  [cutModel.image getSubImage:cutModel.corpRect];
+        [images addObject:newImage];
     }
-    return _currentImagePreview;
+    return [NSMutableArray arrayWithArray:images];
 }
+
+
 
 - (void)setCoverImage:(UIImage *)theImage
 {
@@ -395,8 +355,17 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
         pinchGestureRecognizer.scale = 1;
         
     }
+    LPImageCutModel * cutModel ;
+    PHAsset * rowAsset = self.albumModel.assets[self.nowEditRow];
+    if([self.albumModel.selectedAssets containsObject:rowAsset]){
+        NSInteger index = [self.albumModel.selectedAssets indexOfObject:rowAsset];
+        cutModel = [self.editdImages objectAtIndex:index];
+    }
     
-    
+    if(cutModel){
+        cutModel.scrale = cutModel.image.size.width/view.frame.size.width;
+        NSLog(@"缩放比例- %.2f- %.2f ",cutModel.scrale,pinchGestureRecognizer.scale);
+    }
     if (pinchGestureRecognizer.state == UIGestureRecognizerStateEnded) {
         CGFloat rule = view.width > view.height?view.width:view.height;
         CGFloat min = kScreenWidth * WIDTHHEIGHTLIMETSCALE;
@@ -420,7 +389,10 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
                 view.width = width;
                 view.height = height;
                 view.center = CGPointMake(view.superview.width / 2.0, view.superview.height / 2.0);
-                
+                if(cutModel){
+                    [self updateModel:cutModel WithView:view];
+                    
+                }
             }];
         }else{
             CGFloat width = view.width;
@@ -445,10 +417,43 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
                 view.width = width;
                 view.height = height;
                 view.center = center;
+                if(cutModel){
+                    [self updateModel:cutModel WithView:view];
+                    
+                }
             }];
         }
         
     }
+}
+
+- (void)updateModel:(LPImageCutModel * )cutModel WithView:(UIView *)view {
+    
+    CGFloat imgX;
+    CGFloat imgY;
+    CGFloat imgW;
+    CGFloat imgH;
+    
+    if (view.width <= kScreenWidth)
+    {
+        imgX = 0;
+        imgW = view.width;
+    }else{
+        imgX = -view.originX;
+        imgW = kScreenWidth;
+    }
+    
+    if (view.height <= kScreenWidth) {
+        imgY = 0;
+        imgH = view.height;
+    }else{
+        imgY = - view.originY;
+        imgH = kScreenWidth;
+    }
+    CGFloat scraled = cutModel.scrale;
+    CGRect rect = CGRectMake(imgX*scraled, imgY*scraled, imgW*scraled, imgH*scraled);
+    cutModel.corpRect = rect;
+    NSLog(@"%@",NSStringFromCGRect(cutModel.corpRect ));
 }
 
 // 处理拖拉手势
@@ -460,6 +465,16 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
         [view setCenter:(CGPoint){view.center.x + translation.x, view.center.y + translation.y}];
         [panGestureRecognizer setTranslation:CGPointZero inView:view.superview];
     }
+    LPImageCutModel * cutModel ;
+    PHAsset * rowAsset = self.albumModel.assets[self.nowEditRow];
+    if([self.albumModel.selectedAssets containsObject:rowAsset]){
+        NSInteger index = [self.albumModel.selectedAssets indexOfObject:rowAsset];
+        cutModel = [self.editdImages objectAtIndex:index];
+    }
+    if(cutModel){
+        cutModel.scrale = cutModel.image.size.width/view.frame.size.width;
+    }
+    
     if (panGestureRecognizer.state == UIGestureRecognizerStateEnded) {
         CGPoint center = view.center;
         
@@ -490,11 +505,49 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
         }
         [UIView animateWithDuration:0.2 animations:^{
             view.center = center;
+            self.latestFrame = view.frame;
+            if(cutModel){
+                [self updateModel:cutModel WithView:view];
+                
+            }
         }];
         
     }
+    
 }
 
+
+#pragma mark - Get方法
+
+- (UIImageView *)currentImagePreview {
+    if(!_currentImagePreview){
+        _currentImagePreview = [[UIImageView alloc] initWithFrame:self.previewBgView.frame];
+        
+        [_currentImagePreview setUserInteractionEnabled:YES];
+        [_currentImagePreview setMultipleTouchEnabled:YES];
+        
+        // 旋转手势
+        //    UIRotationGestureRecognizer *rotationGestureRecognizer = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotateView:)];
+        //    [view addGestureRecognizer:rotationGestureRecognizer];
+        
+        // 缩放手势
+        UIPinchGestureRecognizer *pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchView:)];
+        pinchGestureRecognizer.delegate =self;
+        [_currentImagePreview addGestureRecognizer:pinchGestureRecognizer];
+        
+        // 移动手势
+        UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panView:)];
+        panGestureRecognizer.delegate =self;
+        panGestureRecognizer.maximumNumberOfTouches = 1;
+        [panGestureRecognizer setCancelsTouchesInView:NO];
+        [_currentImagePreview addGestureRecognizer:panGestureRecognizer];
+        
+        
+        
+        [self.previewBgView addSubview:_currentImagePreview];
+    }
+    return _currentImagePreview;
+}
 
 -(UIView *)previewBgView {
     if(!_previewBgView){
@@ -570,8 +623,27 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
     return _confirmButton;
 }
 
+- (NSMutableArray<UIImage *> *)selectedImages{
+    if(!_selectedImages){
+        _selectedImages = [NSMutableArray new];
+        }
+    return _selectedImages;
+}
+- (NSMutableArray<UIImage *> *)editdImages{
+    if(!_editdImages){
+        _editdImages = [NSMutableArray new];
+    }
+    return _editdImages;
+}
 
 
-
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    if (![gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]] && ![otherGestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]) {
+        return YES;
+    }
+    
+    return NO;
+}
 
 @end

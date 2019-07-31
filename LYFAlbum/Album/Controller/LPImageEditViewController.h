@@ -11,7 +11,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface LPImageEditViewController : UIViewController
-@property (nonatomic,strong) NSMutableArray<LYFPhotoModel *> *images;
+@property (nonatomic,strong) NSMutableArray<UIImage *> *images;
 @end
 
 NS_ASSUME_NONNULL_END

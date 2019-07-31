@@ -11,6 +11,7 @@
 		05C90D2E22F1550700AE4482 /* UIImage+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C90D2A22F1550700AE4482 /* UIImage+Additions.m */; };
 		05C90D3222F15AC800AE4482 /* LPImageEditViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C90D3022F15AC800AE4482 /* LPImageEditViewController.m */; };
 		05C90D3322F15AC800AE4482 /* LPImageEditViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 05C90D3122F15AC800AE4482 /* LPImageEditViewController.xib */; };
+		05C90D3622F2190B00AE4482 /* LPImageCutModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C90D3522F2190A00AE4482 /* LPImageCutModel.m */; };
 		4BFF53E921B902A100359325 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BFF53E821B902A100359325 /* AppDelegate.m */; };
 		4BFF53EC21B902A100359325 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BFF53EB21B902A100359325 /* ViewController.m */; };
 		4BFF53EF21B902A100359325 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4BFF53ED21B902A100359325 /* Main.storyboard */; };
@@ -36,6 +37,8 @@
 		05C90D2F22F15AC800AE4482 /* LPImageEditViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LPImageEditViewController.h; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPImageEditViewController.h; sourceTree = "<group>"; };
 		05C90D3022F15AC800AE4482 /* LPImageEditViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = LPImageEditViewController.m; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPImageEditViewController.m; sourceTree = "<group>"; };
 		05C90D3122F15AC800AE4482 /* LPImageEditViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = LPImageEditViewController.xib; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPImageEditViewController.xib; sourceTree = "<group>"; };
+		05C90D3422F2190A00AE4482 /* LPImageCutModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LPImageCutModel.h; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Model/LPImageCutModel.h; sourceTree = "<group>"; };
+		05C90D3522F2190A00AE4482 /* LPImageCutModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = LPImageCutModel.m; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Model/LPImageCutModel.m; sourceTree = "<group>"; };
 		4BDB942E21BA4CC400B227E5 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		4BDB942F21BA4CC400B227E5 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
 		4BFF53E421B902A100359325 /* LYFAlbum.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LYFAlbum.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -158,6 +161,8 @@
 				4BFF540821B90B7A00359325 /* LYFAlbumModel.m */,
 				4BFF540E21B9161100359325 /* LYFPhotoModel.h */,
 				4BFF540F21B9161100359325 /* LYFPhotoModel.m */,
+				05C90D3422F2190A00AE4482 /* LPImageCutModel.h */,
+				05C90D3522F2190A00AE4482 /* LPImageCutModel.m */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -265,6 +270,7 @@
 				4BFF540921B90B7A00359325 /* LYFAlbumModel.m in Sources */,
 				4BFF541E21B920EE00359325 /* LYFAlbumTableViewCell.m in Sources */,
 				4BFF53EC21B902A100359325 /* ViewController.m in Sources */,
+				05C90D3622F2190B00AE4482 /* LPImageCutModel.m in Sources */,
 				4BFF541B21B91DE800359325 /* LYFAlbumTableView.m in Sources */,
 				4BFF53F721B902A300359325 /* main.m in Sources */,
 				4BFF53FF21B9036200359325 /* LYFAlbumViewController.m in Sources */,
