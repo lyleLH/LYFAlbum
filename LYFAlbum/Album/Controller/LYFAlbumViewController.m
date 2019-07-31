@@ -12,12 +12,14 @@
 #import "LYFPhotoManger.h"
 #import "LYFAlbumView.h"
 #import "LYFPhotoModel.h"
-
-#define kScreenWidth  [[UIScreen mainScreen] bounds].size.width
-#define kScreenHeight [[UIScreen mainScreen] bounds].size.height
+#import "UIView+Additions.h"
+#import "UIImage+Additions.h"
+#import "LPImageEditViewController.h"
 
 @interface LYFAlbumViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
-
+{
+    CGSize orginSize;
+}
 
 /// 显示相册按钮
 @property (nonatomic, strong) UIButton *showAlbumButton;
@@ -147,34 +149,58 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
     LYFAlbumCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:albumCollectionViewCell forIndexPath:indexPath];
     
     cell.row = indexPath.row;
-    cell.asset = self.albumModel.assets[indexPath.row];
-    [cell loadImage:indexPath];
-    cell.isSelect = [self.albumModel.selectRows containsObject:@(indexPath.row)];
+    PHAsset * rowAsset = self.albumModel.assets[indexPath.row];
+    NSInteger seqNumber = [self.albumModel.selectedAssets indexOfObject:rowAsset]+1;
+    cell.seqNumber =  seqNumber;
+    cell.isSelect = [self.albumModel.selectedAssets containsObject:rowAsset];
     
+    cell.asset = rowAsset;
+    [cell loadImage:indexPath];
+    
+   
     __weak typeof(self) weakSelf = self;
     __weak typeof(cell) weakCell = cell;
     cell.selectPhotoAction = ^(PHAsset *asset) {
         BOOL isReloadCollectionView = NO;
-        if ([weakSelf.albumModel.selectRows containsObject:@(indexPath.row)]) {
+        if([self.albumModel.selectedAssets containsObject:asset]){
+            
+            NSMutableArray * oldAry = [self.albumModel.selectRows copy];
             [weakSelf.albumModel.selectRows removeObject:@(indexPath.row)];
+            [weakSelf.albumModel.selectedAssets removeObject:asset];
+            
             [LYFPhotoManger standardPhotoManger].choiceCount--;
             
-            isReloadCollectionView = [LYFPhotoManger standardPhotoManger].choiceCount == 9;
-        } else {
+            NSMutableArray * indexPathAry = [NSMutableArray new];
+            for (NSInteger i = 0; i<   oldAry.count; i++) {
+                NSNumber * number = oldAry[i];
+                [indexPathAry addObject:[NSIndexPath indexPathForRow:[number integerValue] inSection:0]];
+            }
+            [self.albumCollectionView reloadItemsAtIndexPaths:indexPathAry];
+            if([LYFPhotoManger standardPhotoManger].choiceCount == 9){//减少到10张以下，去除遮罩
+                [weakSelf.albumCollectionView reloadData];
+            }
+            
+            
+        }else {
             if ([LYFPhotoManger standardPhotoManger].maxCount == [LYFPhotoManger standardPhotoManger].choiceCount) {
                 return;
             }
-            
             [weakSelf.albumModel.selectRows addObject:@(indexPath.row)];
+            weakCell.seqNumber =  [self.albumModel.selectedAssets indexOfObject:asset]+1;
+            
+            [weakSelf.albumModel.selectedAssets addObject:asset];
+            
+            [self.albumCollectionView reloadItemsAtIndexPaths:@[indexPath]];
+            
             [LYFPhotoManger standardPhotoManger].choiceCount++;
-            isReloadCollectionView = [LYFPhotoManger standardPhotoManger].choiceCount == 10;
+            if([LYFPhotoManger standardPhotoManger].choiceCount == 10){//选到第10张，去除遮罩
+                [weakSelf.albumCollectionView reloadData];
+            }
+            [weakSelf fetchImageWithAsset:asset imageBlock:^(NSData *imageData) {
+                [weakSelf setCoverImage: [UIImage imageWithData:imageData]];
+            }];
         }
-        
-        if (isReloadCollectionView) {
-            [weakSelf.albumCollectionView reloadData];
-        } else {
-            weakCell.isSelect = [weakSelf.albumModel.selectRows containsObject:@(indexPath.row)];
-        }
+        weakCell.isSelect = [weakSelf.albumModel.selectedAssets containsObject:asset];
     };
     
     return cell;
@@ -183,7 +209,7 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     PHAsset *asset = self.albumModel.assets[indexPath.row];
     [self fetchImageWithAsset:asset imageBlock:^(NSData *imageData) {
-        self.currentImagePreview.image = [UIImage imageWithData:imageData];
+        [self setCoverImage: [UIImage imageWithData:imageData]];
     }];
     
 }
@@ -201,7 +227,7 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
         if (orientation != UIImageOrientationUp) {
             UIImage* image = [UIImage imageWithData:imageData];
             // 尽然弯了,那就板正一下
-            image = [self fixOrientation:image];
+            image = [image fixOrientation:image];
             // 新的 数据信息 （不准确的）
             imageData = UIImageJPEGRepresentation(image, 0.5);
         }
@@ -240,37 +266,62 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
 }
 
 -(void)confirmAction:(UIButton *)button {
-    if ([LYFPhotoManger standardPhotoManger].choiceCount > 0) {
+    if(self.albumModel.selectedAssets.count>0){
         button.enabled = NO;
         NSMutableArray<LYFPhotoModel *> *photoList = [NSMutableArray array];
-        
-        __weak typeof(self) weakSelf = self;
-        for (LYFAlbumModel *albumModel in self.assetCollectionList) {
-            for (NSNumber *row in albumModel.selectRows) {
-                if (row.integerValue < albumModel.assets.count) {
-                    LYFPhotoModel *photoModel = [[LYFPhotoModel alloc] init];
-                    
-                    __weak typeof(photoModel) weakPhotoModel = photoModel;
-                    photoModel.getPictureAction = ^{
-                        [photoList addObject:weakPhotoModel];
-                        
-                        if (photoList.count == [LYFPhotoManger standardPhotoManger].choiceCount) {
-                            button.enabled = YES;
-                            
-                            [LYFPhotoManger standardPhotoManger].photoModelList = photoList;
-                            if (weakSelf.confirmAction) {
-                                weakSelf.confirmAction();
-                            }
-                            
-                            [weakSelf dismissViewControllerAnimated:YES completion:nil];
-                        }
-                    };
-                    
-                    photoModel.asset = albumModel.assets[row.integerValue];
+        for (NSInteger i =0 ; i<self.albumModel.selectedAssets.count; i ++) {
+            
+            LYFPhotoModel *photoModel = [[LYFPhotoModel alloc] init];
+            photoModel.asset = self.albumModel.selectedAssets[i];
+            __weak typeof(photoModel) weakPhotoModel = photoModel;
+            photoModel.getPictureAction = ^{
+                [photoList addObject:weakPhotoModel];
+                if (photoList.count == [LYFPhotoManger standardPhotoManger].choiceCount) {
+                    button.enabled = YES;
+                    [LYFPhotoManger standardPhotoManger].photoModelList = photoList;
                 }
-            }
+            };
         }
+        
+        LPImageEditViewController * editVc = [[LPImageEditViewController alloc] init];
+        
+        editVc.images = photoList;
+        
+        [self.navigationController pushViewController:editVc animated:YES];
     }
+    
+//    if ([LYFPhotoManger standardPhotoManger].choiceCount > 0) {
+//        button.enabled = NO;
+//        NSMutableArray<LYFPhotoModel *> *photoList = [NSMutableArray array];
+//
+//        __weak typeof(self) weakSelf = self;
+//        for (LYFAlbumModel *albumModel in self.assetCollectionList) {
+//            for (NSNumber *row in albumModel.selectRows) {
+//                if (row.integerValue < albumModel.assets.count) {
+//                    LYFPhotoModel *photoModel = [[LYFPhotoModel alloc] init];
+//
+//                    __weak typeof(photoModel) weakPhotoModel = photoModel;
+//                    photoModel.getPictureAction = ^{
+//                        [photoList addObject:weakPhotoModel];
+//
+//                        if (photoList.count == [LYFPhotoManger standardPhotoManger].choiceCount) {
+//                            button.enabled = YES;
+//
+//                            [LYFPhotoManger standardPhotoManger].photoModelList = photoList;
+//                            if (weakSelf.confirmAction) {
+//                                weakSelf.confirmAction();
+//                            }
+//
+////                            [weakSelf dismissViewControllerAnimated:YES completion:nil];
+//
+//                        }
+//                    };
+//
+//                    photoModel.asset = albumModel.assets[row.integerValue];
+//                }
+//            }
+//        }
+//    }
 }
 
 #pragma mark - Get方法
@@ -278,15 +329,177 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
 - (UIImageView *)currentImagePreview {
     if(!_currentImagePreview){
         _currentImagePreview = [[UIImageView alloc] initWithFrame:self.previewBgView.frame];
+        
+        [_currentImagePreview setUserInteractionEnabled:YES];
+        [_currentImagePreview setMultipleTouchEnabled:YES];
+        
+        // 旋转手势
+        //    UIRotationGestureRecognizer *rotationGestureRecognizer = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotateView:)];
+        //    [view addGestureRecognizer:rotationGestureRecognizer];
+        
+        // 缩放手势
+        UIPinchGestureRecognizer *pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchView:)];
+        [_currentImagePreview addGestureRecognizer:pinchGestureRecognizer];
+        
+        // 移动手势
+        UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panView:)];
+        panGestureRecognizer.maximumNumberOfTouches = 1;
+        [_currentImagePreview addGestureRecognizer:panGestureRecognizer];
+        
+        
+        
         [self.previewBgView addSubview:_currentImagePreview];
     }
     return _currentImagePreview;
 }
 
+- (void)setCoverImage:(UIImage *)theImage
+{
+    CGFloat WHScale = theImage.size.width / theImage.size.height;
+    
+    CGFloat rule = kScreenWidth * WIDTHHEIGHTLIMETSCALE;
+    CGSize imageViewSize;
+    if (WHScale > 1) {
+        CGFloat height = kScreenWidth/WHScale;
+        if (height < rule) {
+            height = rule;
+            imageViewSize = CGSizeMake(height*WHScale, height);
+        }else{
+            imageViewSize = CGSizeMake(kScreenWidth, height);
+        }
+    }else{
+        CGFloat width = kScreenWidth*WHScale;
+        if (width < rule) {
+            width = rule;
+            imageViewSize = CGSizeMake(width, width/WHScale);
+        }else{
+            imageViewSize = CGSizeMake(width, kScreenWidth);
+        }
+    }
+    self.currentImagePreview.contentMode = UIViewContentModeScaleToFill;
+    [self.currentImagePreview setImage:theImage];
+    [self.currentImagePreview setTranslatesAutoresizingMaskIntoConstraints:YES];
+    self.currentImagePreview.frame = CGRectMake(0, 0, imageViewSize.width, imageViewSize.height);
+    self.currentImagePreview.center = CGPointMake(self.currentImagePreview.superview.width / 2.0f, self.currentImagePreview.superview.height / 2.0f);
+    
+    orginSize = self.currentImagePreview.frame.size;
+}
+
+#pragma mark -- 手势代码实现
+// 处理缩放手势
+- (void) pinchView:(UIPinchGestureRecognizer *)pinchGestureRecognizer
+{
+    UIView *view = pinchGestureRecognizer.view;
+    if (pinchGestureRecognizer.state == UIGestureRecognizerStateBegan || pinchGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+        view.transform = CGAffineTransformScale(view.transform, pinchGestureRecognizer.scale, pinchGestureRecognizer.scale);
+        pinchGestureRecognizer.scale = 1;
+        
+    }
+    
+    
+    if (pinchGestureRecognizer.state == UIGestureRecognizerStateEnded) {
+        CGFloat rule = view.width > view.height?view.width:view.height;
+        CGFloat min = kScreenWidth * WIDTHHEIGHTLIMETSCALE;
+        if (rule < kScreenWidth) {
+            CGFloat width;
+            CGFloat height;
+            if (view.width > view.height) {
+                width = kScreenWidth;
+                height = kScreenWidth * view.height / view.width;
+            }else{
+                height = kScreenWidth;
+                width = kScreenWidth * view.width / view.height;
+            }
+            
+            if (width < min || height < min) {
+                width = orginSize.width;
+                height = orginSize.height;
+            }
+            
+            [UIView animateWithDuration:0.2 animations:^{
+                view.width = width;
+                view.height = height;
+                view.center = CGPointMake(view.superview.width / 2.0, view.superview.height / 2.0);
+                
+            }];
+        }else{
+            CGFloat width = view.width;
+            CGFloat height = view.height;
+            if (width > SCALEMAX * orginSize.width || height > SCALEMAX * orginSize.height) {
+                height = SCALEMAX * orginSize.height;
+                width = SCALEMAX * orginSize.width;
+            }
+            if (width < min || height < min) {
+                width = orginSize.width;
+                height = orginSize.height;
+            }
+            CGPoint center = view.center;
+            if (width < kScreenWidth) {
+                center.x = view.superview.width / 2.0;
+            }
+            if (height < kScreenWidth) {
+                center.y = view.superview.height / 2.0;
+            }
+            
+            [UIView animateWithDuration:0.2 animations:^{
+                view.width = width;
+                view.height = height;
+                view.center = center;
+            }];
+        }
+        
+    }
+}
+
+// 处理拖拉手势
+- (void) panView:(UIPanGestureRecognizer *)panGestureRecognizer
+{
+    UIView *view = panGestureRecognizer.view;
+    if (panGestureRecognizer.state == UIGestureRecognizerStateBegan || panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+        CGPoint translation = [panGestureRecognizer translationInView:view.superview];
+        [view setCenter:(CGPoint){view.center.x + translation.x, view.center.y + translation.y}];
+        [panGestureRecognizer setTranslation:CGPointZero inView:view.superview];
+    }
+    if (panGestureRecognizer.state == UIGestureRecognizerStateEnded) {
+        CGPoint center = view.center;
+        
+        if (view.width <= kScreenWidth)
+        {
+            center.x = kScreenWidth / 2.0f;
+        }else{
+            if (view.originX > 0) {
+                center.x -= view.originX;
+            }else{
+                if ((kScreenWidth - center.x) > view.width / 2.0f) {
+                    center.x += (kScreenWidth - center.x) - view.width / 2.0f;
+                }
+            }
+        }
+        
+        if (view.height <= kScreenWidth) {
+            center.y = kScreenWidth / 2.0f;
+        }else{
+            if (view.originY > 0) {
+                center.y -= view.originY;
+            }else{
+                if((kScreenWidth - center.y) > view.height / 2.0f){
+                    CGFloat offSet =(kScreenWidth - center.y)-view.height / 2.0f;
+                    center.y += offSet;
+                }
+            }
+        }
+        [UIView animateWithDuration:0.2 animations:^{
+            view.center = center;
+        }];
+        
+    }
+}
+
+
 -(UIView *)previewBgView {
     if(!_previewBgView){
-        _previewBgView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kScreenWidth, kScreenWidth)];
-        _previewBgView.backgroundColor = [UIColor lightGrayColor];
+        _previewBgView = [[UIView alloc] initWithFrame:CGRectMake(0, 64, kScreenWidth, kScreenWidth)];
+        _previewBgView.backgroundColor = [UIColor whiteColor];
         [self.view addSubview:_previewBgView];
     }
     return _previewBgView;
@@ -299,7 +512,7 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
         layout.minimumLineSpacing = 5.f;
         layout.minimumInteritemSpacing = 5.f;
         
-        _albumCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.previewBgView.frame), kScreenWidth, kScreenHeight- CGRectGetHeight(self.previewBgView.frame)) collectionViewLayout:layout];
+        _albumCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.previewBgView.frame), kScreenWidth, kScreenHeight- CGRectGetHeight(self.previewBgView.frame)-64) collectionViewLayout:layout];
         _albumCollectionView.delegate = self;
         _albumCollectionView.dataSource = self;
         _albumCollectionView.backgroundColor = [UIColor whiteColor];
@@ -359,82 +572,6 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
 
 
 
-/** 解决旋转90度问题 */
-- (UIImage *)fixOrientation:(UIImage *)aImage
-{
-    // No-op if the orientation is already correct
-    if (aImage.imageOrientation == UIImageOrientationUp)
-        return aImage;
-    
-    // We need to calculate the proper transformation to make the image upright.
-    // We do it in 2 steps: Rotate if Left/Right/Down, and then flip if Mirrored.
-    CGAffineTransform transform = CGAffineTransformIdentity;
-    
-    switch (aImage.imageOrientation) {
-        case UIImageOrientationDown:
-        case UIImageOrientationDownMirrored:
-            transform = CGAffineTransformTranslate(transform, aImage.size.width, aImage.size.height);
-            transform = CGAffineTransformRotate(transform, M_PI);
-            break;
-            
-        case UIImageOrientationLeft:
-        case UIImageOrientationLeftMirrored:
-            transform = CGAffineTransformTranslate(transform, aImage.size.width, 0);
-            transform = CGAffineTransformRotate(transform, M_PI_2);
-            break;
-            
-        case UIImageOrientationRight:
-        case UIImageOrientationRightMirrored:
-            transform = CGAffineTransformTranslate(transform, 0, aImage.size.height);
-            transform = CGAffineTransformRotate(transform, -M_PI_2);
-            break;
-        default:
-            break;
-    }
-    
-    switch (aImage.imageOrientation) {
-        case UIImageOrientationUpMirrored:
-        case UIImageOrientationDownMirrored:
-            transform = CGAffineTransformTranslate(transform, aImage.size.width, 0);
-            transform = CGAffineTransformScale(transform, -1, 1);
-            break;
-            
-        case UIImageOrientationLeftMirrored:
-        case UIImageOrientationRightMirrored:
-            transform = CGAffineTransformTranslate(transform, aImage.size.height, 0);
-            transform = CGAffineTransformScale(transform, -1, 1);
-            break;
-        default:
-            break;
-    }
-    
-    // Now we draw the underlying CGImage into a new context, applying the transform
-    // calculated above.
-    CGContextRef ctx = CGBitmapContextCreate(NULL, aImage.size.width, aImage.size.height,
-                                             CGImageGetBitsPerComponent(aImage.CGImage), 0,
-                                             CGImageGetColorSpace(aImage.CGImage),
-                                             CGImageGetBitmapInfo(aImage.CGImage));
-    CGContextConcatCTM(ctx, transform);
-    switch (aImage.imageOrientation) {
-        case UIImageOrientationLeft:
-        case UIImageOrientationLeftMirrored:
-        case UIImageOrientationRight:
-        case UIImageOrientationRightMirrored:
-            // Grr...
-            CGContextDrawImage(ctx, CGRectMake(0,0,aImage.size.height,aImage.size.width), aImage.CGImage);
-            break;
-            
-        default:
-            CGContextDrawImage(ctx, CGRectMake(0,0,aImage.size.width,aImage.size.height), aImage.CGImage);
-            break;
-    }
-    
-    // And now we just create a new UIImage from the drawing context
-    CGImageRef cgimg = CGBitmapContextCreateImage(ctx);
-    UIImage *img = [UIImage imageWithCGImage:cgimg];
-    CGContextRelease(ctx);
-    CGImageRelease(cgimg);
-    return img;
-}
+
 
 @end

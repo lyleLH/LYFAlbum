@@ -20,4 +20,7 @@ typedef void(^LYFPhotoModelAction)(void);
 /// 获取图片成功事件
 @property (nonatomic, copy) LYFPhotoModelAction getPictureAction;
 
+/// 处理后的图片
+@property (nonatomic, strong) UIImage *cuttedImage;
+
 @end

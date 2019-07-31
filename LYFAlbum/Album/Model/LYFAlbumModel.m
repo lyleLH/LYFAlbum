@@ -31,12 +31,18 @@
 }
 
 #pragma mark - Get方法
--(NSMutableArray<NSNumber *> *)selectRows {
-    if (!_selectRows) {
-        _selectRows = [NSMutableArray array];
+-(NSMutableArray<PHAsset *> *)selectedAssets {
+    if (!_selectedAssets) {
+        _selectedAssets = [NSMutableArray array];
     }
     
-    return _selectRows;
+    return _selectedAssets;
 }
 
+-(NSMutableArray<NSNumber *> *)selectRows {
+    if(!_selectRows){
+        _selectRows = [NSMutableArray new];
+    }
+    return _selectRows;
+}
 @end

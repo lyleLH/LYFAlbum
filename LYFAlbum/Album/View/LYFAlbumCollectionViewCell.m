@@ -30,17 +30,40 @@
         [self photoImageView];
         [self translucentView];
         [self selectButton];
+        self.seqNumber =1;
     }
     
     return self;
 }
+
 
 #pragma mark - Set方法
 -(void)setIsSelect:(BOOL)isSelect {
     _isSelect = isSelect;
     
     self.translucentView.hidden = !isSelect;
-    [self.selectButton setBackgroundImage:isSelect ? [UIImage imageNamed: @"selectImage_select"] : nil forState:UIControlStateNormal];
+    
+    
+    if(isSelect){
+        self.selectButton.layer.cornerRadius = 12.5f;
+        [self.selectButton setTitle:[NSString stringWithFormat:@"%ld",(long)self.seqNumber] forState:UIControlStateNormal];
+        [self.selectButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        self.selectButton.backgroundColor = [UIColor redColor];
+        
+        _translucentView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.2];
+    }else{
+        [self.selectButton setTitle:@"" forState:UIControlStateNormal];
+        [self.selectButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        self.selectButton.backgroundColor = [UIColor clearColor];
+        
+        _selectButton.layer.borderColor = [UIColor whiteColor].CGColor;
+        _selectButton.layer.borderWidth = 1.f;
+        _selectButton.layer.cornerRadius = 12.5f;
+        
+        _translucentView.backgroundColor = [UIColor colorWithRed:1 green:1 blue:1 alpha:0.4];
+    }
+    
+//    [self.selectButton setBackgroundImage:isSelect ? [UIImage imageNamed: @"selectImage_select"] : nil forState:UIControlStateNormal];
     
     if ([LYFPhotoManger standardPhotoManger].maxCount == [LYFPhotoManger standardPhotoManger].choiceCount) {
         self.translucentView.hidden = NO;

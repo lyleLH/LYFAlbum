@@ -8,6 +8,7 @@
 
 #import "LYFPhotoModel.h"
 
+
 @implementation LYFPhotoModel
 
 -(void)setAsset:(PHAsset *)asset {
@@ -32,4 +33,11 @@
     });
 }
 
+
+- (void)setHighDefinitionImage:(UIImage *)highDefinitionImage {
+    _highDefinitionImage = highDefinitionImage;
+    
+}
+
+ 
 @end

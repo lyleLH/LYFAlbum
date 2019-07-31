@@ -13,6 +13,9 @@ typedef void(^LYFAlbumCollectionViewCellAction)(PHAsset *asset);
 
 @interface LYFAlbumCollectionViewCell : UICollectionViewCell
 
+/// 选中序号
+@property (nonatomic, assign) NSInteger seqNumber;
+
 /// 行数
 @property (nonatomic, assign) NSInteger row;
 /// 相片

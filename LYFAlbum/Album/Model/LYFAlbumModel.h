@@ -15,7 +15,7 @@
 @property (nonatomic, strong) PHAssetCollection *collection;
 /// 第一个相片
 @property (nonatomic, strong) PHAsset *firstAsset;
-/// 第一个相片
+
 @property (nonatomic, strong) PHFetchResult<PHAsset *> *assets;
 /// 相册名
 @property (nonatomic, copy) NSString *collectionTitle;
@@ -23,5 +23,9 @@
 @property (nonatomic, copy) NSString *collectionNumber;
 /// 选中的图片
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *selectRows;
+
+
+/// 选中的图片
+@property (nonatomic, strong) NSMutableArray<PHAsset *> *selectedAssets;
 
 @end
