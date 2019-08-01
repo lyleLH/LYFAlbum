@@ -219,9 +219,8 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
                 LPImageCutModel * cutModel = [[LPImageCutModel alloc] init];
                 
                 cutModel.image = selectedImage;
-                cutModel.scrale =  1.0;
-                cutModel.originRect = self.currentImagePreview.frame;
-                cutModel.corpRect = cutModel.originRect;
+                cutModel.scrale =  selectedImage.size.width/self.currentImagePreview.frame.size.width;
+                [self updateModel:cutModel WithView:self.currentImagePreview];
                 [weakSelf.editdImages addObject:cutModel];
                 
             }];
@@ -305,6 +304,8 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
     NSMutableArray * images = [NSMutableArray new];
     for (NSInteger i =0 ; i <self.editdImages.count; i ++) {
         LPImageCutModel * cutModel = self.editdImages[i];
+        NSLog(@"%@",NSStringFromCGRect(cutModel.corpRect));
+        NSLog(@"图片/视图 比例--%.2f",cutModel.scrale);
         UIImage * newImage =  [cutModel.image getSubImage:cutModel.corpRect];
         [images addObject:newImage];
     }
@@ -349,12 +350,44 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
 // 处理缩放手势
 - (void) pinchView:(UIPinchGestureRecognizer *)pinchGestureRecognizer
 {
-    UIView *view = pinchGestureRecognizer.view;
-    if (pinchGestureRecognizer.state == UIGestureRecognizerStateBegan || pinchGestureRecognizer.state == UIGestureRecognizerStateChanged) {
-        view.transform = CGAffineTransformScale(view.transform, pinchGestureRecognizer.scale, pinchGestureRecognizer.scale);
-        pinchGestureRecognizer.scale = 1;
+    if (UIGestureRecognizerStateBegan == pinchGestureRecognizer.state ||
+        UIGestureRecognizerStateChanged == pinchGestureRecognizer.state) {
         
+        // Use the x or y scale, they should be the same for typical zooming (non-skewing)
+        float currentScale = [[pinchGestureRecognizer.view.layer valueForKeyPath:@"transform.scale.x"] floatValue];
+        
+        // Variables to adjust the max/min values of zoom
+        float minScale = 1.0;
+        float maxScale = 2.0;
+        float zoomSpeed = .5;
+        
+        float deltaScale = pinchGestureRecognizer.scale;
+        
+        // You need to translate the zoom to 0 (origin) so that you
+        // can multiply a speed factor and then translate back to "zoomSpace" around 1
+        deltaScale = ((deltaScale - 1) * zoomSpeed) + 1;
+        
+        // Limit to min/max size (i.e maxScale = 2, current scale = 2, 2/2 = 1.0)
+        //  A deltaScale is ~0.99 for decreasing or ~1.01 for increasing
+        //  A deltaScale of 1.0 will maintain the zoom size
+        deltaScale = MIN(deltaScale, maxScale / currentScale);
+        deltaScale = MAX(deltaScale, minScale / currentScale);
+        
+        CGAffineTransform zoomTransform = CGAffineTransformScale(pinchGestureRecognizer.view.transform, deltaScale, deltaScale);
+        pinchGestureRecognizer.view.transform = zoomTransform;
+        
+        // Reset to 1 for scale delta's
+        //  Note: not 0, or we won't see a size: 0 * width = 0
+        pinchGestureRecognizer.scale = 1;
     }
+
+//    UIView *view = pinchGestureRecognizer.view;
+//    if (pinchGestureRecognizer.state == UIGestureRecognizerStateBegan || pinchGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+//        view.transform = CGAffineTransformScale(view.transform, pinchGestureRecognizer.scale, pinchGestureRecognizer.scale);
+//        pinchGestureRecognizer.scale = 1;
+//
+//    }
+    UIView *view = pinchGestureRecognizer.view;
     LPImageCutModel * cutModel ;
     PHAsset * rowAsset = self.albumModel.assets[self.nowEditRow];
     if([self.albumModel.selectedAssets containsObject:rowAsset]){
@@ -427,38 +460,12 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
     }
 }
 
-- (void)updateModel:(LPImageCutModel * )cutModel WithView:(UIView *)view {
-    
-    CGFloat imgX;
-    CGFloat imgY;
-    CGFloat imgW;
-    CGFloat imgH;
-    
-    if (view.width <= kScreenWidth)
-    {
-        imgX = 0;
-        imgW = view.width;
-    }else{
-        imgX = -view.originX;
-        imgW = kScreenWidth;
-    }
-    
-    if (view.height <= kScreenWidth) {
-        imgY = 0;
-        imgH = view.height;
-    }else{
-        imgY = - view.originY;
-        imgH = kScreenWidth;
-    }
-    CGFloat scraled = cutModel.scrale;
-    CGRect rect = CGRectMake(imgX*scraled, imgY*scraled, imgW*scraled, imgH*scraled);
-    cutModel.corpRect = rect;
-    NSLog(@"%@",NSStringFromCGRect(cutModel.corpRect ));
-}
+
 
 // 处理拖拉手势
 - (void) panView:(UIPanGestureRecognizer *)panGestureRecognizer
 {
+    
     UIView *view = panGestureRecognizer.view;
     if (panGestureRecognizer.state == UIGestureRecognizerStateBegan || panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
         CGPoint translation = [panGestureRecognizer translationInView:view.superview];
@@ -516,7 +523,34 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
     
 }
 
-
+- (void)updateModel:(LPImageCutModel * )cutModel WithView:(UIView *)view {
+    
+    CGFloat imgX;
+    CGFloat imgY;
+    CGFloat imgW;
+    CGFloat imgH;
+    
+    if (view.width <= kScreenWidth)
+    {
+        imgX = 0;
+        imgW = view.width;
+    }else{
+        imgX = -view.originX;
+        imgW = kScreenWidth;
+    }
+    
+    if (view.height <= kScreenWidth) {
+        imgY = 0;
+        imgH = view.height;
+    }else{
+        imgY = - view.originY;
+        imgH = kScreenWidth;
+    }
+    CGFloat scraled = cutModel.scrale;
+    CGRect rect = CGRectMake(imgX*scraled, imgY*scraled, imgW*scraled, imgH*scraled);
+    cutModel.corpRect = rect;
+    NSLog(@"%@",NSStringFromCGRect(cutModel.corpRect ));
+}
 #pragma mark - Get方法
 
 - (UIImageView *)currentImagePreview {
