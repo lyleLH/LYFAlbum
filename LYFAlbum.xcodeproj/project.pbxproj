@@ -8,11 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		0544AD2222F546D7003CAE34 /* LPPhotoCellLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 0544AD2122F546D7003CAE34 /* LPPhotoCellLayout.m */; };
+		0544AD2822F59755003CAE34 /* UIView+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0544AD2522F59754003CAE34 /* UIView+Additions.m */; };
+		0544AD2922F59755003CAE34 /* UIImage+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0544AD2722F59754003CAE34 /* UIImage+Additions.m */; };
 		0594145922F53D8C00ED3591 /* LPPhotoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 0594145722F53D8C00ED3591 /* LPPhotoCell.m */; };
 		0594145A22F53D8C00ED3591 /* LPPhotoCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0594145822F53D8C00ED3591 /* LPPhotoCell.xib */; };
 		0594145D22F53DFA00ED3591 /* LPPhotoEditModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 0594145C22F53DFA00ED3591 /* LPPhotoEditModel.m */; };
-		05C90D2D22F1550700AE4482 /* UIView+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C90D2922F1550700AE4482 /* UIView+Additions.m */; };
-		05C90D2E22F1550700AE4482 /* UIImage+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C90D2A22F1550700AE4482 /* UIImage+Additions.m */; };
 		05C90D3222F15AC800AE4482 /* LPImageEditViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C90D3022F15AC800AE4482 /* LPImageEditViewController.m */; };
 		05C90D3322F15AC800AE4482 /* LPImageEditViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 05C90D3122F15AC800AE4482 /* LPImageEditViewController.xib */; };
 		05C90D3622F2190B00AE4482 /* LPImageCutModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C90D3522F2190A00AE4482 /* LPImageCutModel.m */; };
@@ -36,15 +36,15 @@
 /* Begin PBXFileReference section */
 		0544AD2022F546D7003CAE34 /* LPPhotoCellLayout.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LPPhotoCellLayout.h; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCellLayout.h; sourceTree = "<group>"; };
 		0544AD2122F546D7003CAE34 /* LPPhotoCellLayout.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = LPPhotoCellLayout.m; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCellLayout.m; sourceTree = "<group>"; };
+		0544AD2422F59754003CAE34 /* UIImage+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Additions.h"; sourceTree = "<group>"; };
+		0544AD2522F59754003CAE34 /* UIView+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Additions.m"; sourceTree = "<group>"; };
+		0544AD2622F59754003CAE34 /* UIView+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Additions.h"; sourceTree = "<group>"; };
+		0544AD2722F59754003CAE34 /* UIImage+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Additions.m"; sourceTree = "<group>"; };
 		0594145622F53D8C00ED3591 /* LPPhotoCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LPPhotoCell.h; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCell.h; sourceTree = "<group>"; };
 		0594145722F53D8C00ED3591 /* LPPhotoCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = LPPhotoCell.m; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCell.m; sourceTree = "<group>"; };
 		0594145822F53D8C00ED3591 /* LPPhotoCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = LPPhotoCell.xib; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCell.xib; sourceTree = "<group>"; };
 		0594145B22F53DFA00ED3591 /* LPPhotoEditModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LPPhotoEditModel.h; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoEditModel.h; sourceTree = "<group>"; };
 		0594145C22F53DFA00ED3591 /* LPPhotoEditModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = LPPhotoEditModel.m; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoEditModel.m; sourceTree = "<group>"; };
-		05C90D2922F1550700AE4482 /* UIView+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Additions.m"; sourceTree = "<group>"; };
-		05C90D2A22F1550700AE4482 /* UIImage+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Additions.m"; sourceTree = "<group>"; };
-		05C90D2B22F1550700AE4482 /* UIImage+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Additions.h"; sourceTree = "<group>"; };
-		05C90D2C22F1550700AE4482 /* UIView+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Additions.h"; sourceTree = "<group>"; };
 		05C90D2F22F15AC800AE4482 /* LPImageEditViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LPImageEditViewController.h; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPImageEditViewController.h; sourceTree = "<group>"; };
 		05C90D3022F15AC800AE4482 /* LPImageEditViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = LPImageEditViewController.m; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPImageEditViewController.m; sourceTree = "<group>"; };
 		05C90D3122F15AC800AE4482 /* LPImageEditViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = LPImageEditViewController.xib; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPImageEditViewController.xib; sourceTree = "<group>"; };
@@ -93,6 +93,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0544AD2322F59754003CAE34 /* Category */ = {
+			isa = PBXGroup;
+			children = (
+				0544AD2422F59754003CAE34 /* UIImage+Additions.h */,
+				0544AD2522F59754003CAE34 /* UIView+Additions.m */,
+				0544AD2622F59754003CAE34 /* UIView+Additions.h */,
+				0544AD2722F59754003CAE34 /* UIImage+Additions.m */,
+			);
+			path = Category;
+			sourceTree = "<group>";
+		};
 		4BFF53DB21B902A100359325 = {
 			isa = PBXGroup;
 			children = (
@@ -117,10 +128,6 @@
 				4BFF53E821B902A100359325 /* AppDelegate.m */,
 				4BFF53EA21B902A100359325 /* ViewController.h */,
 				4BFF53EB21B902A100359325 /* ViewController.m */,
-				05C90D2B22F1550700AE4482 /* UIImage+Additions.h */,
-				05C90D2A22F1550700AE4482 /* UIImage+Additions.m */,
-				05C90D2C22F1550700AE4482 /* UIView+Additions.h */,
-				05C90D2922F1550700AE4482 /* UIView+Additions.m */,
 				4BFF53ED21B902A100359325 /* Main.storyboard */,
 				4BFF53F021B902A300359325 /* Assets.xcassets */,
 				4BFF53F221B902A300359325 /* LaunchScreen.storyboard */,
@@ -133,6 +140,7 @@
 		4BFF540021B9037300359325 /* Album */ = {
 			isa = PBXGroup;
 			children = (
+				0544AD2322F59754003CAE34 /* Category */,
 				4BFF540B21B915D800359325 /* LYFPhotosManager.h */,
 				4BFF540C21B915D800359325 /* LYFPhotosManager.m */,
 				4BFF540621B90B6E00359325 /* Model */,
@@ -289,17 +297,17 @@
 				4BFF540921B90B7A00359325 /* LYFAlbumModel.m in Sources */,
 				4BFF541E21B920EE00359325 /* LYFAlbumTableViewCell.m in Sources */,
 				0544AD2222F546D7003CAE34 /* LPPhotoCellLayout.m in Sources */,
+				0544AD2822F59755003CAE34 /* UIView+Additions.m in Sources */,
 				4BFF53EC21B902A100359325 /* ViewController.m in Sources */,
 				05C90D3622F2190B00AE4482 /* LPImageCutModel.m in Sources */,
 				0594145922F53D8C00ED3591 /* LPPhotoCell.m in Sources */,
 				4BFF541B21B91DE800359325 /* LYFAlbumTableView.m in Sources */,
+				0544AD2922F59755003CAE34 /* UIImage+Additions.m in Sources */,
 				4BFF53F721B902A300359325 /* main.m in Sources */,
 				4BFF53FF21B9036200359325 /* LYFAlbumViewController.m in Sources */,
 				4BFF541821B91D5300359325 /* LYFAlbumView.m in Sources */,
 				0594145D22F53DFA00ED3591 /* LPPhotoEditModel.m in Sources */,
 				4BFF53E921B902A100359325 /* AppDelegate.m in Sources */,
-				05C90D2D22F1550700AE4482 /* UIView+Additions.m in Sources */,
-				05C90D2E22F1550700AE4482 /* UIImage+Additions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
