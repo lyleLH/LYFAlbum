@@ -222,10 +222,8 @@ static NSString *albumCollectionViewCell = @"LYFAlbumCollectionViewCell";
                 cutModel.scrale =  selectedImage.size.width/self.currentImagePreview.frame.size.width;
                 [self updateModel:cutModel WithView:self.currentImagePreview];
                 [weakSelf.editdImages addObject:cutModel];
-                
             }];
         }
-        
     };
     
     return cell;
