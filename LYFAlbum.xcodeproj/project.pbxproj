@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0544AD2222F546D7003CAE34 /* LPPhotoCellLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 0544AD2122F546D7003CAE34 /* LPPhotoCellLayout.m */; };
 		0594145922F53D8C00ED3591 /* LPPhotoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 0594145722F53D8C00ED3591 /* LPPhotoCell.m */; };
 		0594145A22F53D8C00ED3591 /* LPPhotoCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0594145822F53D8C00ED3591 /* LPPhotoCell.xib */; };
 		0594145D22F53DFA00ED3591 /* LPPhotoEditModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 0594145C22F53DFA00ED3591 /* LPPhotoEditModel.m */; };
@@ -33,6 +34,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0544AD2022F546D7003CAE34 /* LPPhotoCellLayout.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LPPhotoCellLayout.h; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCellLayout.h; sourceTree = "<group>"; };
+		0544AD2122F546D7003CAE34 /* LPPhotoCellLayout.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = LPPhotoCellLayout.m; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCellLayout.m; sourceTree = "<group>"; };
 		0594145622F53D8C00ED3591 /* LPPhotoCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LPPhotoCell.h; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCell.h; sourceTree = "<group>"; };
 		0594145722F53D8C00ED3591 /* LPPhotoCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = LPPhotoCell.m; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCell.m; sourceTree = "<group>"; };
 		0594145822F53D8C00ED3591 /* LPPhotoCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = LPPhotoCell.xib; path = ../../../../../../System/Volumes/Data/Users/mttgcc/LYFAlbum/LYFAlbum/Album/Controller/LPPhotoCell.xib; sourceTree = "<group>"; };
@@ -147,6 +150,8 @@
 				05C90D2F22F15AC800AE4482 /* LPImageEditViewController.h */,
 				05C90D3022F15AC800AE4482 /* LPImageEditViewController.m */,
 				05C90D3122F15AC800AE4482 /* LPImageEditViewController.xib */,
+				0544AD2022F546D7003CAE34 /* LPPhotoCellLayout.h */,
+				0544AD2122F546D7003CAE34 /* LPPhotoCellLayout.m */,
 				0594145622F53D8C00ED3591 /* LPPhotoCell.h */,
 				0594145722F53D8C00ED3591 /* LPPhotoCell.m */,
 				0594145822F53D8C00ED3591 /* LPPhotoCell.xib */,
@@ -283,6 +288,7 @@
 				4BFF540D21B915D800359325 /* LYFPhotosManager.m in Sources */,
 				4BFF540921B90B7A00359325 /* LYFAlbumModel.m in Sources */,
 				4BFF541E21B920EE00359325 /* LYFAlbumTableViewCell.m in Sources */,
+				0544AD2222F546D7003CAE34 /* LPPhotoCellLayout.m in Sources */,
 				4BFF53EC21B902A100359325 /* ViewController.m in Sources */,
 				05C90D3622F2190B00AE4482 /* LPImageCutModel.m in Sources */,
 				0594145922F53D8C00ED3591 /* LPPhotoCell.m in Sources */,

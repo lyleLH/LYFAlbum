@@ -52,7 +52,7 @@
 
 #pragma mark - delegate
 - (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section {
-    return 10.0f;
+    return 0.0f;
 }
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
     return self.dataSource.count;
@@ -70,14 +70,17 @@
     return cell;
 }
 
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
+    CGFloat width =  kScreenWidth ;
+    CGFloat height = kScreenWidth;
+//    height = 200.0f;
+    return CGSizeMake(width, height);
+}
 
 -(void)setCollectionView:(UICollectionView *)collectionView {
-    UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
-    layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
-    layout.sectionInset = UIEdgeInsetsMake(0, 0, 0, 0);
-    layout.itemSize = collectionView.bounds.size;
-    [collectionView registerClass:[LPPhotoCell class]
-     forCellWithReuseIdentifier:NSStringFromClass([LPPhotoCell class])];
+ 
+    [collectionView registerNib:[UINib nibWithNibName:NSStringFromClass([LPPhotoCell class]) bundle:nil] forCellWithReuseIdentifier:NSStringFromClass([LPPhotoCell class])];
+  
     collectionView.dataSource = self;
     collectionView.delegate = self;
     //开启会影响手势

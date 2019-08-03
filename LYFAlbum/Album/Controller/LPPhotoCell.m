@@ -15,4 +15,8 @@
     // Initialization code
 }
 
+-(void)setPhotoModel:(LPPhotoEditModel *)photoModel{
+    self.photoImageView.image = photoModel.image;
+    _photoModel = photoModel;
+}
 @end
